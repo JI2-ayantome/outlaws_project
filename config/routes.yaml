@@ -1,0 +1,7 @@
+#index:
+#    path: /
+#    controller: App\Controller\DefaultController::index
+
+auth_token:
+    path: /auth_token
+    methods: ['POST']

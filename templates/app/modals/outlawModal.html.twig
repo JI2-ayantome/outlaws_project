@@ -1,0 +1,210 @@
+{# 
+ # Twig template : modal with the necessary informations on an outlaw
+ #}
+
+<div class="modal fade" id="dataModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Data Modal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    
+
+                    <div class="accordion" id="accordionExample">
+
+                        <div class="card">
+                            <div class="card-header" id="headingOne">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        Données Fugitif
+                                    </button>
+                                </h2>
+                            </div>
+                        
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                                <div class="card-body">
+                                
+    
+                                    <div class="row">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Nom</label>
+                                            <input type="text" class="form-control" placeholder="Nom" name = "nom">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Prénoms</label>
+                                            <input type="text" class="form-control" placeholder="Prénoms" name = "prenoms">
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Adresse</label>
+                                            <input type="text" class="form-control" placeholder="Adresse" name = "adresse">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Alias</label>
+                                            <input type="text" class="form-control" placeholder="Alias" name = "alias">
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1" >Sexe</label>
+                                            <select class="form-control" id="exampleFormControlSelect1" name = "sexe">
+                                                <option value = "Masculin">Masculin</option>
+                                                <option value = "Féminin">Féminin</option>
+                                            </select>
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Surnom</label>
+                                            <input type="text" class="form-control" placeholder="Surnom" name = "surnom">
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1" >Lieu de naissance</label>
+                                            <input type="text" class="form-control" placeholder="Lieu de naissance" name = "lieunaissance">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">date de naissance</label>
+                                            <input type="date" class="form-control" name = "datenaissance">
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Taille</label>
+                                            <input type="number" class="form-control" value = "1.5" name = "taille">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Poids</label>
+                                            <input type="number" class="form-control" value = "50" name = "poids">
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Numero Téléphone</label>
+                                            <input type="number" class="form-control" placeholder="Numero Téléphone" name = "numerotelephone">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Numero Pièce Identité</label>
+                                            <input type="number" class="form-control" placeholder="Numero Pièce Identité" name = "numeropieceid">
+                                        </div>
+                                    </div>
+    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="selectTagNationalite">Nationalité</label>
+                                            <select class="form-control" id="selectTagNationalite" name = "nationalite">
+                                                {% for nationalite in nationalites %}
+                                                    <option value = "Béninoise">{{nationalite.libelle}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Observations</label>
+                                            <textarea class = "form-control" rows= "3" id = "" name = "observations"></textarea>
+                                        </div>
+                                    </div>
+    
+                                    <!-- <div class="row mt-5">
+                                        <div class="col">
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" id="customFile">
+                                                <label class="custom-file-label" for="customFile">Choisir Fugitif photo de profil</label>
+                                            </div>
+                                        </div>
+                                    </div> -->
+    
+                                </div>
+                            
+                            </div>    
+    
+                        </div>
+    
+    
+                        <div class="card">
+                            <div class="card-header" id="headingOne">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        Données Mandat
+                                    </button>
+                                </h2>
+                            </div>
+                        
+                            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                                <div class="card-body">
+    
+                                    <div class="row">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Réference</label>
+                                            <input type="text" class="form-control" placeholder="Référence" name = "reference">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Type</label>
+                                            <select class="form-control" id="selectTagTypeMandat" name = "typemandat">
+                                                {% for typeMandat in typeMandats %}
+                                                    <option value = "national">{{typeMandat.libelle}}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Date Emission</label>
+                                            <input type="date" class="form-control" name = "dateemission">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">executé</label>
+                                            <select class="form-control" id="exampleFormControlSelect1" name = "execute">
+                                                <option value = "oui">Oui</option>
+                                                <option value = "non">Non</option>
+                                            </select>
+                                        </div>
+                                    </div>
+    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Chambres</label>
+                                            <input type="text" class="form-control" placeholder="Chambres" name = "chambres">
+                                        </div>
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Juridictions</label>
+                                            <input type="text" class="form-control" placeholder="Juridictions" name = "juridictions">
+                                        </div>
+                                    </div>
+    
+                                    <div class="row mt-3">
+                                        <div class="col">
+                                            <label for="exampleInputEmail1">Infractions</label>
+                                            <input type="text" class="form-control" placeholder="Infractions" name = "infractions">
+                                        </div>
+                                    </div>
+    
+    
+                                </div>
+                            </div>
+                        </div>                
+                    </div>
+
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+                <button type="button" class="btn btn-primary" id = "btnSave">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

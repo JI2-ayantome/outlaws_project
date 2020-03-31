@@ -1,0 +1,13 @@
+0000000000000000000000000000000000000000 2b8d7086848200b6f256d2ff3c0fdd12748ecbfa tgna <gnatafsir@gmail.com> 1579677369 +0100	clone: from https://github.com/bricelab/bddpr-api.git
+2b8d7086848200b6f256d2ff3c0fdd12748ecbfa af61a18fb5a8567e20c5d120a87bfc2a14b5e4b5 tgna <gnatafsir@gmail.com> 1579765822 +0100	commit: Implementing the api client code and the data addition functionality
+af61a18fb5a8567e20c5d120a87bfc2a14b5e4b5 0112787c9b0ff47a6cae6d006b5c15d50aa6d9b1 tgna <gnatafsir@gmail.com> 1580284842 +0100	commit: Implementing the api client software and new server-side functions such as object deletion and update
+0112787c9b0ff47a6cae6d006b5c15d50aa6d9b1 84fba829031c75852357954aa3715fd14ce535c4 tgna <gnatafsir@gmail.com> 1580464463 +0100	commit: Implementing jwt authentication in client-side software ajax calls
+84fba829031c75852357954aa3715fd14ce535c4 116e8008cf6a6d9811a919e9ed6c7f06a5775b9f tgna <gnatafsir@gmail.com> 1580814202 +0100	commit: getting started implementing authentication as envisoned by brice.
+116e8008cf6a6d9811a919e9ed6c7f06a5775b9f 5f957f70d05d17fc8952bb8be5a924e5cf695cdc tgna <gnatafsir@gmail.com> 1582749001 +0100	commit: Implements log elements recommended by MJL such as createdBy, updatedBy ... on server-side
+5f957f70d05d17fc8952bb8be5a924e5cf695cdc 9cbf382432f467eb3ea0dcfcc637910ade84b0b4 tgna <gnatafsir@gmail.com> 1583146969 +0100	commit: Fixing little issues such as issues around adding and updating data.
+9cbf382432f467eb3ea0dcfcc637910ade84b0b4 3f2fafb75d3af518832840a4e75feed44a280bc9 tgna <gnatafsir@gmail.com> 1583858128 +0100	commit: Commit aimed to allow Jislain to improve the api-client code.
+3f2fafb75d3af518832840a4e75feed44a280bc9 5b90816da5a6f55c4abbbdbf145b8c349d80e028 tgna <gnatafsir@gmail.com> 1584994713 +0100	commit: completing the backend with the portage of old code to this project
+5b90816da5a6f55c4abbbdbf145b8c349d80e028 05d280bc66d1d1d11819733e1043a0a089ef8743 tgna <gnatafsir@gmail.com> 1585140115 +0100	commit: Implement pagination and fix footer issue
+05d280bc66d1d1d11819733e1043a0a089ef8743 afa08b58eb27933a9c451ae76a1def36ba88ebe7 tgna <gnatafsir@gmail.com> 1585597430 +0100	commit: update code and take into accounts brice's recommandations
+afa08b58eb27933a9c451ae76a1def36ba88ebe7 767f503d46b320581cab21450e45bdec6b885c17 tgna <gnatafsir@gmail.com> 1585662258 +0100	commit: try to fix some issues
+767f503d46b320581cab21450e45bdec6b885c17 89cfdca699d07f3facaaf1217a97639c546197db tgna <gnatafsir@gmail.com> 1585662690 +0100	commit: daily commit

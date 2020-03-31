@@ -1,0 +1,37 @@
+<!-- Modal -->
+<div class="modal fade" id="searchModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Search Modal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <input type="text" class="form-control" placeholder="Rechercher" id = "searchInput"/>
+                        </div>
+                        <div class="col">
+                            <select class="form-control" id="criteriaSelectTag">
+                                <option value = "" selected>Tous les champs</option>
+                                <option value = "nom">Nom</option>
+                                <option value = "prenoms">Prénoms</option>
+                                <option value = "adresse">Adresse</option>
+                                <option value = "infractions">Infractions</option>
+                                <option value = "juridictions">Juridictions</option>
+                                <option value = "nationalite">Nationalité</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id = "btnSearch">Rechercher</button>
+                <button type="button" class="btn btn-secondary" id = "btnInitiate">Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AppController!{% endblock %}
+
+{% block header_navbar %}
+    {% include "app/header.html.twig" %}
+{% endblock %}
+
+{% block container %}
+
+    <div class = "row">
+        <div class = "col-6 offset-3 mt-5">
+            <h4 class = "w-100">
+                Liste des personnes recherchées
+                <div class="dropdown float-right">
+                    <button class="btn btn-primary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Actions
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a id = "dropdown-item-add" class="dropdown-item" href="#" data-toggle="modal" data-target="#dataModal">Ajouter</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#searchModal">Rechercher</a>
+                    </div>
+                </div>
+            </h4>
+            <hr class = "mb-5"/>
+
+            <table class="table table-striped mt-5 ">
+                <thead>
+                    <tr>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Prénoms</th>
+                    <th scope="col">Infractions</th>
+                    <th scope="col">Juridictions</th>
+                    <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# {% for mandat in mandats %}
+                        <tr data-id = "{{mandat.id}}">
+                            <th scope="row">{{mandat.fugitif.nom}}</th>
+                            <td>{{mandat.fugitif.prenoms}}</td>
+                            <td>{{mandat.infractions}}</td>
+                            <td>{{mandat.juridictions}}</td>
+                            <td>
+                                <img class = "delete_menu_action" style = "cursor: pointer;" src = "{{asset('build/images/delete_icon.png')}}" alt = "" width = "" height = "" title = "Supprimer"/>
+                                <img class = "edit_menu_action" style = "cursor: pointer;" src = "{{asset('build/images/edit_icon.png')}}" alt = "" width = "" height = "" title = "Modifier" data-toggle="modal" data-target="#dataModal"/>
+                            </td>
+                        </tr>
+                    {% endfor %} #}
+                </tbody>
+            </table>
+
+            <div class = "text-center pt-5">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            
+            
+            <div class "text-center">
+                <nav class = "" aria-label="Page navigation example">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        {#  #}
+                        
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+
+        </div>
+
+    </div>    
+
+
+
+    {# include the search modal twig component in the html page #}
+    {% include "app/modals/searchModal.html.twig" %}
+
+    {# include the outlaw's informations modal twig component in the html page #}
+    {% include "app/modals/outlawModal.html.twig" %}
+
+    <div id="snackbar"></div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{parent()}}
+
+    <script>
+        {# localItems = {{mandats|json_encode()}};
+        console.log((localItems[0])); #}
+    </script>
+{% endblock %}
+

@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}{{parent()}}{% endblock %}
+
+{% block title %}{{parent()}}{% endblock %}
+
+
+{% block container %}
+
+	{# <div class = "row"> #}
+		<div class = "card bg-white col-10 mx-auto my-5 p-3">
+			<h1>A propos</h1>
+
+            <h3>Bienvenue !</h3>
+            <p>
+                Il est dorénavant possible en plus de la procédure à la mairie de faire une demande en ligne de permis directement.
+            </p>
+            <p>
+                Ce site vous permet de faire votre demande de permis de contruire en ligne. Pour cela veuillez vous munir de la 
+                <a href="http://www.permisdeconstruire.bj/guide-de-l-usager/permis-de-construire/item/102-formalites-et-pieces-a-fournir" target="_blank">
+                    liste des pièces 
+                </a> nécessaires en format numérique.
+            </p>
+            <p>
+                Vous pouvez ensuite remplir en ligne le formulaire de demande de permis de construire et le soumettre. 
+                Vous recevrez une notification pour vous signalez que votre demande à bien été prise en compte.
+            </p>
+            <p>
+                Vous serez ensuite contacter par un agent de la mairie via email pour vous donner le montant à payer relatif à votre projet de 
+                construction.
+            </p>
+            <p>
+                Il faudra ensuite fournir la preuve de paiement à l'agent municipal qui vous transmettra une attestation de recevalibité.
+                Votre dossier sera traité en commission et vous serez contacté pour recevoir votre permis de construire ou compléter 
+                votre dossier.
+            </p>
+		</div>
+	{# </div> #}
+
+{% endblock %}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<!-- CSS -->
+        {% block stylesheets %}
+
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+            {{ encore_entry_link_tags('app') }}
+            {{ encore_entry_link_tags('main') }}
+            <link 
+                href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600&display=swap" 
+                rel="stylesheet"/>
+
+        {% endblock %}
+
+		<title>{% block title %}Personnes recherchées{% endblock %}</title>
+  </head>
+
+    {# {% block body %} #}
+    
+        <body {# style = "position: absolute;" #} class = "">
+
+            {% block header_navbar %}
+                {% include "header.html.twig" %}
+            {% endblock %}
+
+
+            {% block container %}
+            {% endblock %}
+
+            {% include "footer.html.twig" %}
+    {# {% endblock %} #}
+    
+    {% block javascripts %}
+    
+        <!-- Optional JavaScript -->
+	    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" 
+			integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" 
+			crossorigin="anonymous">
+		</script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" 
+			integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" 
+			crossorigin="anonymous">
+		</script>
+
+        {# <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+        <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script> #}
+
+        {{ encore_entry_script_tags('app') }}
+
+        <script>
+            var delete_icon = "{{asset('build/images/delete_icon.png')}}"
+            var edit_icon = "{{asset('build/images/edit_icon.png')}}"
+        </script>
+
+    {% endblock %}
+
+</html>
+
