@@ -5,9 +5,12 @@ namespace App\Controller;
 use App\Entity\Fugitif;
 use App\Entity\Mandat;
 use App\Entity\Nationalite;
+use App\Entity\NationaliteFugitif;
 use App\Entity\Search;
 use App\Entity\TypeMandat;
 use App\Repository\MandatRepository;
+use App\Repository\NationaliteRepository;
+use App\Repository\TypeMandatRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +22,10 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
+
 // use Symfony\Component\String\Slugger\SluggerInterface;
 
 class AppController extends AbstractController
@@ -96,27 +103,6 @@ class AppController extends AbstractController
     }
 
     /**
-     * @Route("/admin/mandats/{page}", name="app_mandats_fetch_action", options={"expose"=true})
-     */
-    public function fetchWarrants(Request $request, EntityManagerInterface $em, $page)
-    {
-        // if ($request->isXmlHttpRequest()){
-
-            $mandatRepository = $em->getRepository(Mandat::class);
-
-            $nbMandats = $mandatRepository->getAllMandatsCount();
-
-            $offset = (($page - 1) * $this->getParameter("MANDAT_DISPLAY_LIMIT"));
-
-            $mandats = $mandatRepository->findBy([], null, $this->getParameter("MANDAT_DISPLAY_LIMIT"), $offset);
-
-            $data = ["mandats"  => $mandats, "pages"    =>  round($nbMandats/$this->getParameter("MANDAT_DISPLAY_LIMIT"))];
-            return $this->json($data, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
-        // }
-        return new Response("Not an ajax request");
-    }
-
-    /**
      * @Route("/a-propos", name="app_about_action")
      */
     public function aboutPage()
@@ -159,32 +145,35 @@ class AppController extends AbstractController
      * @Route("/admin/search", name="app_search_action", methods="GET", options={"expose"=true})
      */
 
-    public function searchObjects(Request $request, $page = 0, MandatRepository $mandatRepository) : Response
+    public function searchObjects(Request $request, MandatRepository $mandatRepository) : Response
     {
         $search = new Search();
 
         $search->q = $request->query->get("q", "");
         $search->field = $request->query->get("field", null);
 
+        $page = $request->query->get("page", 1);
+        $search->limit = $this->getParameter("MANDAT_DISPLAY_LIMIT");
+        $search->offset = (($page - 1) * $search->limit);
+
         //dd($search, $request);
 
-        $data = $this->getDoctrine()->getManager()->getRepository(Mandat::class)->findSearch($search);
-        if($data === null){
+        $mandats = $this->getDoctrine()->getManager()->getRepository(Mandat::class)->findSearch($search);
+        if($mandats === null){
             $message = "Erreur : Le champ {$search->field} n'existe pas !";
             return $this->json($message, Response::HTTP_BAD_REQUEST);
         }   
 
-        $nbMandats = sizeof($data);
-        $offset = 0; //(($page - 1) * $this->getParameter("MANDAT_DISPLAY_LIMIT"));
+        $nbMandats = sizeof($mandats);
 
-        $mandats = $mandatRepository->findBy([], null, $this->getParameter("MANDAT_DISPLAY_LIMIT"), $offset);
+        // $mandats = $mandatRepository->findBy([], null, $this->getParameter("MANDAT_DISPLAY_LIMIT"), $offset);
 
-        $data = ["mandats"  => $mandats, "pages"    =>  round($nbMandats/$this->getParameter("MANDAT_DISPLAY_LIMIT"))];
+        $data = ["mandats"  => $mandats, "page"    =>  $page/* round($nbMandats/$search->limit) */];
         return $this->json($data, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
     }
 
     /**
-     * @Route("/admin/delete_warrant/{id}", name="app_warrant_deletion_action", methods="GET", options={"expose"=true})
+     * @Route("/admin/delete_warrant/{id}", name="app_warrant_deletion_action", methods="DELETE", options={"expose"=true})
      */
 
     public function deleteWarrant($id, MandatRepository $mandatRepository, EntityManagerInterface $em){
@@ -203,6 +192,85 @@ class AppController extends AbstractController
         return $this->json("Item deleted successfully", Response::HTTP_OK, []);
     }
 
+    /**
+     * @Route("/admin/update_warrant/{id}", name = "app_update_warrant_action", methods="PUT", options={"expose"=true})
+     */
+
+    public function updateWarrant(Request $request, SerializerInterface $serializer, EntityManagerInterface $em,  MandatRepository $mandatRepository,
+    NationaliteRepository $nationaliteRepository, TypeMandatRepository $typeMandatRepository, $id) : Response
+    {
+        $mandat = $mandatRepository->findOneBy(["id"    =>  $id]);
+        try {
+            /** @var Mandat */
+            $serializer->deserialize($request->getContent(), Mandat::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $mandat] /* [ "groups" => "search:read" ] */);
+
+        } catch (NotEncodableValueException $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $ex) {
+            return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+
+        $fugitif = $mandat->getFugitif();
+        foreach ($fugitif->getListeNationalites() as $nat) {
+            $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
+            if($nationalite){
+                $fugitif->removeListeNationalite($nat);
+                $natfug = (new NationaliteFugitif())
+                    ->setFugitif($fugitif)
+                    ->setNationalite($nationalite);
+                $fugitif->addListeNationalite($natfug);
+            }
+        }
+        $mandat->setFugitif($fugitif);
+        
+        $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
+        if ($typemandat){
+            $mandat->setTypeMandat($typemandat);
+        }
+        $em->flush();
+        return $this->json($mandat, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
+    }
+
+
+    /**
+     * @Route("/admin/add_warrant", name = "app_add_warrant_action", methods="POST", options={"expose"=true})
+     */
+
+    public function addWarrant(Request $request, SerializerInterface $serializer, EntityManagerInterface $em,  MandatRepository $mandatRepository,
+    NationaliteRepository $nationaliteRepository, TypeMandatRepository $typeMandatRepository) : Response
+    {
+        try {
+            /** @var Mandat */
+            $mandat = $serializer->deserialize($request->getContent(), Mandat::class, 'json', [ "groups" => "infos_mandat" ]);
+
+        } catch (NotEncodableValueException $e) {
+            return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $ex) {
+            return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+
+        $fugitif = $mandat->getFugitif();
+        foreach ($fugitif->getListeNationalites() as $nat) {
+            $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
+            if($nationalite){
+                $fugitif->removeListeNationalite($nat);
+                $natfug = (new NationaliteFugitif())
+                    ->setFugitif($fugitif)
+                    ->setNationalite($nationalite);
+                $fugitif->addListeNationalite($natfug);
+            }
+        }
+        $mandat->setFugitif($fugitif);
+        
+        $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
+        if ($typemandat){
+            $mandat->setTypeMandat($typemandat);
+        }
+
+        $em->persist($mandat);
+        $em->flush();
+        return $this->json($mandat, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
+    }
 
 
 

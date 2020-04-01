@@ -43,6 +43,7 @@ class NationaliteFugitif
     /**
      * @ORM\Column(type="boolean")
      * @Groups("search:read")
+     * @Groups("infos_mandat")
      */
     private $principale = true;
 

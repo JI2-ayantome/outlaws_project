@@ -49,29 +49,33 @@ class MandatRepository extends ServiceEntityRepository
     }
     */
 
-    /**
-     * @return integer Return the count of all mandat objects
-     */
-    public function getAllMandatsCount()
-    {
-        return $this->_em->createQueryBuilder()
-                            ->select('count(m)')
-                            ->from($this->_entityName, 'm')
-                            ->getQuery()
-                            ->getSingleScalarResult()
-                            ;
+    // /**
+    //  * @return integer Return the count of all mandat objects
+    //  */
+    // public function getAllMandatsCount()
+    // {
+    //     return $this->_em->createQueryBuilder()
+    //                         ->select('count(m)')
+    //                         ->from($this->_entityName, 'm')
+    //                         ->getQuery()
+    //                         ->getSingleScalarResult()
+    //                         ;
 
-    }
+    // }
 
     /**
-     *  @return Fugitif[]|null Returns an array of Fugitif objects
+     *  @return Mandat[]|null Returns an array of Mandats objects
      */
     public function findSearch(Search $search) : ?array
     {
         $query = $this->createQueryBuilder('m')
             ->orderBy('m.id', 'ASC')
-            //->setMaxResults(10)
+            ->setMaxResults($search->limit)
+            ->setFirstResult($search->offset)
+            // ->where("m.archived = false")
         ;
+
+        // dd($search);
 
         if ($search->field) {   
             
@@ -85,10 +89,12 @@ class MandatRepository extends ServiceEntityRepository
                         # code...
                         $query
                         ->join("m.fugitif", "f")
-                        ->orWhere('UPPER(f.nom) LIKE UPPER(:searchTerm'.$i.')');
-                        $query->setParameter('searchTerm'.$i, "%".$value."%");
+                        ->orWhere('UPPER(f.nom) LIKE UPPER(:searchTerm'.$i.')')
+                        ->setParameter('searchTerm'.$i, "%".$value."%");
                         $i++;
                     }
+
+                    // dd($query->getDQL(), $query->getParameters());
                     ;
                 break;
                 case Search::FIELD_PRENOMS:
@@ -198,6 +204,8 @@ class MandatRepository extends ServiceEntityRepository
         
         //dd($query);
         
+        // return ["results"   =>  $query->getQuery()->getResult(), "count" = ];
+        // $query->andWhere("m.archived = false");
         return $query->getQuery()->getResult();
     }
     

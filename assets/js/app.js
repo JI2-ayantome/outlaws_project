@@ -22,8 +22,9 @@ import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/pu
 Routing.setRoutingData(routes);
 
 var localItems = [];
+var currentPage = 0;
 
-fetchData("", "");
+fetchData("", "", 1);
 
 export function performAjaxRequest(route, type, dataType, data, onRequestSuccess, onRequestFailure, onRequestCompletion){
 
@@ -46,9 +47,9 @@ export function performAjaxRequest(route, type, dataType, data, onRequestSuccess
     
   }
 
-export function fetchData(field, value){
+export function fetchData(field, value, page){
 
-    var route = Routing.generate('app_search_action')+"?field="+field+"&q="+value;
+    var route = Routing.generate('app_search_action')+"?field="+field+"&q="+value+"&page="+page;
 
     $("table tbody").empty();
     
@@ -68,6 +69,7 @@ function onDataFetchSuccess(response, status){
   // saving the received data in a local javascript array
 
   localItems = response.mandats;
+  currentPage = response.page;
 
   displayData(response, status);
 
@@ -90,37 +92,46 @@ function displayData(data, status){
 
     data.mandats.forEach(element => {
 
-        if (element.archived == false){
-            $("table tbody").append('<tr data-id = "'+element.id+'">\
-                <th scope="row">'+element.fugitif.nom+'</th>\
-                <td>'+element.fugitif.prenoms+'</td>\
-                <td>'+element.infractions+'</td>\
-                <td>'+element.juridictions+'</td>\
-                <td>\
-                    <img class = "delete_menu_action" style = "cursor: pointer;" src = "'+delete_icon+'" alt = "" width = "" height = "" title = "Supprimer"/>\
-                    <img class = "edit_menu_action" style = "cursor: pointer;" src = "'+edit_icon+'" alt = "" width = "" height = "" title = "Modifier" data-toggle="modal" data-target="#dataModal"/>\
-                </td>\
-            </tr>');
+        var trClass = "";
+        if (element.archived){
+            trClass = "table-danger";
         }
+    
+        $("table tbody").append('<tr data-id = "'+element.id+'" class = "'+trClass+'">\
+            <th scope="row">'+element.fugitif.nom+'</th>\
+            <td>'+element.fugitif.prenoms+'</td>\
+            <td>'+element.infractions+'</td>\
+            <td>'+element.juridictions+'</td>\
+            <td>\
+                <img class = "delete_menu_action" style = "cursor: pointer;" src = "'+delete_icon+'" alt = "" width = "" height = "" title = "Supprimer"/>\
+                <img class = "edit_menu_action" style = "cursor: pointer;" src = "'+edit_icon+'" alt = "" width = "" height = "" title = "Modifier" data-toggle="modal" data-target="#dataModal"/>\
+            </td>\
+        </tr>');
 
     });
 
-    $("ul.pagination .page-middle-item").remove();
+    // $("ul.pagination .page-middle-item").remove();
+    // console.log("");
 
-    for (let i = 1; i < data.pages; i++) {
-        // const element = array[i];
-        $("ul.pagination li:last").before('<li class="page-item page-middle-item"><a class="page-link" href="{{path(\'app_backend\', {"page": '+i+'})}}">'+i+'</a></li>');
-        if (i == 3){
-            $("ul.pagination li:last").before('<li class="page-item page-middle-item"><a class="page-link read-only">...</a></li>');
-            break;
-        }
-    }
-
-    $("ul.pagination li:last").before('<li class="page-item page-middle-item"><a class="page-link" href="{{path(\'app_backend\', {"page": '+(data.pages-1)+'})}}">'+(data.pages-1)+'</a></li>');
+    $("ul.pagination li:eq(1) > a").text(data.page);
 
     $(".spinner-border").parent().remove();
 }
 
+$("ul.pagination li:last").click(function(){
+    fetchData("", "", currentPage+1)
+});
+
+$("ul.pagination li:first").click(function(){
+    fetchData("", "", currentPage-1)
+});
+
+$("ul.pagination").on("click", "li.page-middle-item", function(){
+    var field = "";
+    var value = "";
+    var page = $(this).children().first().text();
+    fetchData(field, value, page);
+});
 
 var currentItemId = 0;
 
@@ -182,7 +193,7 @@ $("#btnSearch").click(function(){
     var criteria = $("#criteriaSelectTag").val();
     var criteriaValue = $("#searchInput").val();
 
-    fetchData(criteria, criteriaValue);
+    fetchData(criteria, criteriaValue, 1);
 });
 
 $("#btnInitiate").click(function(){
@@ -204,7 +215,7 @@ $("body").on("click", ".delete_menu_action", function(){
 
 function deleteItem(id){
 
-    var route = site_url+"/api/mandat/"+id;
+    var route = Routing.generate("app_warrant_deletion_action", {"id": id});
     // var data = "class=Fugitif&property=id&value="+id;
     
     performAjaxRequest(route, "DELETE", "json", "", onItemDeletionSuccess, onItemDeletionFailure, onItemDeletionCompletion);
@@ -245,7 +256,7 @@ function updateData(form){
 
     var object = getCurrentObject();
     console.log("--------------", object);
-    var route = site_url+"/api/fugitif/"+object.id;
+    var route = Routing.generate("app_update_warrant_action", {"id": object.id});
     var data = JSON.stringify(getJsonObject(form));
 
     performAjaxRequest(route, "PUT", "json", data, onDataUpdateSuccess, onDataUpdateFailure, onDataUpdateCompletion);
@@ -269,7 +280,7 @@ function onDataUpdateCompletion(response, status){
 
 
 function addData(form){
-    var route = site_url+"/api/fugitif";
+    var route = Routing.generate("app_add_warrant_action");
     var data = JSON.stringify(getJsonObject(form));
 
     performAjaxRequest(route, "POST", "json", data, onDataAdditionSuccess, onDataAdditionFailure, onDataAdditionCompletion);
@@ -300,50 +311,91 @@ function getJsonObject(form){
 
     today = yyyy+"-"+mm+"-"+dd;
 
+    // var jsonObject = 
+    // {
+    //     "nom": form.find("[name='nom']").val(),
+    //     "prenoms": form.find("[name='prenoms']").val(),
+    //     "nomMarital": "",
+    //     "alias": form.find("[name='alias']").val(),
+    //     "surnom": form.find("[name='surnom']").val(),
+    //     "dateNaissance": ((form.find("[name='datenaissance']").val() == "") ? null : form.find("[name='datenaissance']").val()),
+    //     "lieuNaissance": form.find("[name='lieunaissance']").val(),
+    //     "adresse": form.find("[name='adresse']").val(),
+    //     "taille": null,
+    //     "poids": null,
+    //     "couleurYeux": null,
+    //     "couleurPeau": null,
+    //     "couleurCheveux": null,
+    //     "photoName": null,
+    //     "photoSize": null,
+    //     "sexe": form.find("[name='sexe']").val(),
+    //     "numeroPieceID": form.find("[name='numeropieceid']").val(),
+    //     "numeroTelephone": form.find("[name='numerotelephone']").val(),
+    //     "observations": form.find("[name='observations']").val(),
+    //     "mandats": [
+    //         {
+    //             "reference": form.find("[name='reference']").val(),
+    //             "execute": ((form.find("[name='execute']").val() == "oui") ? true : false),
+    //             "infractions": form.find("[name='infractions']").val(),
+    //             "chambres": form.find("[name='chambres']").val(),
+    //             "juridictions": form.find("[name='juridictions']").val(),
+    //             "archived" : false,
+    //             "typeMandat": {
+    //                 "libelle": form.find("[name='typemandat']").val()
+    //             },
+    //             "dateEmission": ((form.find("[name='dateemission']").val() == "") ? today : form.find("[name='dateemission']").val())
+    //         }
+    //     ],
+    //     "listeNationalites": [
+    //         {
+    //             "nationalite": {
+    //                 "libelle": form.find("[name='nationalite']").val()
+    //             },
+    //             "principale": true
+    //         }
+    //     ]
+    // };
+
     var jsonObject = 
-    {
-        "nom": form.find("[name='nom']").val(),
-        "prenoms": form.find("[name='prenoms']").val(),
-        "nomMarital": "",
-        "alias": form.find("[name='alias']").val(),
-        "surnom": form.find("[name='surnom']").val(),
-        "dateNaissance": ((form.find("[name='datenaissance']").val() == "") ? null : form.find("[name='datenaissance']").val()),
-        "lieuNaissance": form.find("[name='lieunaissance']").val(),
-        "adresse": form.find("[name='adresse']").val(),
-        "taille": null,
-        "poids": null,
-        "couleurYeux": null,
-        "couleurPeau": null,
-        "couleurCheveux": null,
-        "photoName": null,
-        "photoSize": null,
-        "sexe": form.find("[name='sexe']").val(),
-        "numeroPieceID": form.find("[name='numeropieceid']").val(),
-        "numeroTelephone": form.find("[name='numerotelephone']").val(),
-        "observations": form.find("[name='observations']").val(),
-        "mandats": [
-            {
-                "reference": form.find("[name='reference']").val(),
-                "execute": ((form.find("[name='execute']").val() == "oui") ? true : false),
-                "infractions": form.find("[name='infractions']").val(),
-                "chambres": form.find("[name='chambres']").val(),
-                "juridictions": form.find("[name='juridictions']").val(),
-                "archived" : false,
-                "typeMandat": {
-                    "libelle": form.find("[name='typemandat']").val()
-                },
-                "dateEmission": ((form.find("[name='dateemission']").val() == "") ? today : form.find("[name='dateemission']").val())
-            }
-        ],
-        "listeNationalites": [
-            {
-                "nationalite": {
-                    "libelle": form.find("[name='nationalite']").val()
-                },
-                "principale": true
-            }
-        ]
-    };
+                        {
+                            "reference":form.find("[name='reference']").val(),
+                            "execute":((form.find("[name='execute']").val() == "oui") ? true : false),
+                            "infractions":form.find("[name='infractions']").val(),
+                            "chambres":form.find("[name='chambres']").val(),
+                            "juridictions":form.find("[name='juridictions']").val(),
+                            "typeMandat":{
+                                "libelle":form.find("[name='typemandat']").val()
+                            },
+                            "fugitif":{
+                                "nom":form.find("[name='nom']").val(),
+                                "prenoms":form.find("[name='prenoms']").val(),
+                                "nomMarital":"",
+                                "alias":form.find("[name='surnom']").val(),
+                                "surnom":form.find("[name='surnom']").val(),
+                                "dateNaissance":((form.find("[name='datenaissance']").val() == "") ? null : form.find("[name='datenaissance']").val()),
+                                "lieuNaissance":form.find("[name='lieunaissance']").val(),
+                                "adresse":form.find("[name='adresse']").val(),
+                                "taille":null,
+                                "poids":null,
+                                "couleurYeux":null,
+                                "couleurPeau":null,
+                                "couleurCheveux":null,
+                                "photoName":null,
+                                "photoSize":null,
+                                "sexe":form.find("[name='sexe']").val(),
+                                "numeroTelephone":form.find("[name='numerotelephone']").val(),
+                                "observations":form.find("[name='observation']").val(),
+                                "listeNationalites":[{
+                                    "nationalite":{
+                                        "libelle":"B\u00e9ninoise"
+                                    },
+                                    "principale": true
+                                }],
+                                "langues":null
+                            },
+                            "dateEmission":((form.find("[name='dateemission']").val() == "") ? today : form.find("[name='dateemission']").val()),
+                            "archived":false
+                        };
     console.log("test", jsonObject);
     return jsonObject;
 }
