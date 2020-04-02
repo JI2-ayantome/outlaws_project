@@ -91,20 +91,16 @@ function displayData(data, status){
     console.log(data);
 
     data.mandats.forEach(element => {
-
-        var trClass = "";
-        if (element.archived){
-            trClass = "table-danger";
-        }
     
-        $("table tbody").append('<tr data-id = "'+element.id+'" class = "'+trClass+'">\
+        $("table tbody").append('<tr data-id = "'+element.id+'" class = "'+((element.archived) ? 'table-danger' : '')+'">\
             <th scope="row">'+element.fugitif.nom+'</th>\
             <td>'+element.fugitif.prenoms+'</td>\
             <td>'+element.infractions+'</td>\
             <td>'+element.juridictions+'</td>\
             <td>\
-                <img class = "delete_menu_action" style = "cursor: pointer;" src = "'+delete_icon+'" alt = "" width = "" height = "" title = "Supprimer"/>\
-                <img class = "edit_menu_action" style = "cursor: pointer;" src = "'+edit_icon+'" alt = "" width = "" height = "" title = "Modifier" data-toggle="modal" data-target="#dataModal"/>\
+                '+((!element.archived) ? '<img class = "delete_menu_action" style = "cursor: pointer;" src = "'+delete_icon+'" alt = "" width = "" height = "" title = "Supprimer"/>\
+                <img class = "edit_menu_action" style = "cursor: pointer;" src = "'+edit_icon+'" alt = "" width = "" height = "" title = "Modifier" data-toggle="modal" data-target="#dataModal"/>' : '')
+                +'\
             </td>\
         </tr>');
 
@@ -223,7 +219,7 @@ function deleteItem(id){
 
 function onItemDeletionSuccess(response, status){
     if (status == "success"){
-        $("table tr[data-id='"+currentItemId+"']").remove();
+        $("table tr[data-id='"+currentItemId+"']").addClass("table-danger");
         toast("Item deleted successfully");
     }
 }

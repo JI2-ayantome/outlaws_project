@@ -720,4 +720,31 @@ class Fugitif
 
         return $this;
     }
+
+    /**
+     * @var Fugitif The fugitif object from which values are gonna be copied
+     * 
+     * @return Fugitif
+     */
+    public function copy(Fugitif $fugitif){
+        $this->nom = $fugitif->getNom();
+        $this->prenoms = $fugitif->getPrenoms();
+        $this->alias = $fugitif->getAlias();
+        $this->dateNaissance = $fugitif->getDateNaissance();
+        $this->lieuNaissance = $fugitif->getLieuNaissance();
+        $this->nomMarital = $fugitif->getNomMarital();
+        $this->couleurCheveux = $fugitif->getCouleurCheveux();
+        $this->couleurPeau = $fugitif->getCouleurPeau();
+        $this->couleurYeux = $fugitif->getCouleurYeux();
+        $this->langues = $fugitif->getLangues();
+        $this->sexe = $fugitif->getSexe();
+        $this->adresse = $fugitif->getAdresse();
+        $this->taille = $fugitif->getTaille();
+        $this->poids = $fugitif->getPoids();
+        $this->nom = $fugitif->getNom();
+        $this->numeroTelephone = $fugitif->getNumeroTelephone();
+        $this->observations = $fugitif->getObservations();
+        $this->mandats = $fugitif->getMandats();
+        $this->listeNationalites = $fugitif->getListeNationalites();
+    }
 }

@@ -8,6 +8,7 @@ use App\Entity\Nationalite;
 use App\Entity\NationaliteFugitif;
 use App\Entity\Search;
 use App\Entity\TypeMandat;
+use App\Repository\FugitifRepository;
 use App\Repository\MandatRepository;
 use App\Repository\NationaliteRepository;
 use App\Repository\TypeMandatRepository;
@@ -173,7 +174,7 @@ class AppController extends AbstractController
     }
 
     /**
-     * @Route("/admin/delete_warrant/{id}", name="app_warrant_deletion_action", methods="DELETE", options={"expose"=true})
+     * @Route("/admin/warrant/{id}", name="app_warrant_deletion_action", methods="DELETE", options={"expose"=true})
      */
 
     public function deleteWarrant($id, MandatRepository $mandatRepository, EntityManagerInterface $em){
@@ -193,13 +194,14 @@ class AppController extends AbstractController
     }
 
     /**
-     * @Route("/admin/update_warrant/{id}", name = "app_update_warrant_action", methods="PUT", options={"expose"=true})
+     * @Route("/admin/warrant/{id}", name = "app_update_warrant_action", methods="PUT", options={"expose"=true})
      */
 
     public function updateWarrant(Request $request, SerializerInterface $serializer, EntityManagerInterface $em,  MandatRepository $mandatRepository,
-    NationaliteRepository $nationaliteRepository, TypeMandatRepository $typeMandatRepository, $id) : Response
+    NationaliteRepository $nationaliteRepository, TypeMandatRepository $typeMandatRepository, $id, FugitifRepository $fugitifRepository) : Response
     {
         $mandat = $mandatRepository->findOneBy(["id"    =>  $id]);
+        $fugitif = $mandat->getFugitif();
         try {
             /** @var Mandat */
             $serializer->deserialize($request->getContent(), Mandat::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $mandat] /* [ "groups" => "search:read" ] */);
@@ -210,30 +212,47 @@ class AppController extends AbstractController
             return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
-        $fugitif = $mandat->getFugitif();
-        foreach ($fugitif->getListeNationalites() as $nat) {
-            $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
-            if($nationalite){
-                $fugitif->removeListeNationalite($nat);
-                $natfug = (new NationaliteFugitif())
-                    ->setFugitif($fugitif)
-                    ->setNationalite($nationalite);
-                $fugitif->addListeNationalite($natfug);
+        $fugitif = $fugitifRepository->findOneBy(["nom" =>  $fugitif->getNom(),
+                                                  "prenoms" =>  $fugitif->getPrenoms(),
+                                                  /* "dateNaissance"   =>  $mandat->getFugitif()->getDateNaissance(),
+                                                  "lieuNaissance"   =>  $mandat->getFugitif()->getLieuNaissance() */]);
+
+        if ($fugitif){
+            
+            foreach ($mandat->getFugitif()->getListeNationalites() as $nat) {
+                $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
+                if($nationalite){
+                    $mandat->getFugitif()->removeListeNationalite($nat);
+                    $natfug = (new NationaliteFugitif())
+                        ->setNationalite($nationalite);
+                    $mandat->getFugitif()->addListeNationalite($natfug);
+                }
+                // $nat->setFugitif($fugitif);
             }
+
+            // dd($mandat->getFugitif()->getListeNationalites());
+    
+            $fugitif->copy($mandat->getFugitif());
+            $mandat->setFugitif($fugitif);
+
+            foreach ($mandat->getFugitif()->getListeNationalites() as $nat) {
+                $nat->setFugitif($fugitif);
+            }
+
         }
-        $mandat->setFugitif($fugitif);
         
         $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
         if ($typemandat){
             $mandat->setTypeMandat($typemandat);
         }
+        // dd($mandat);
         $em->flush();
         return $this->json($mandat, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
     }
 
 
     /**
-     * @Route("/admin/add_warrant", name = "app_add_warrant_action", methods="POST", options={"expose"=true})
+     * @Route("/admin/warrant", name = "app_add_warrant_action", methods="POST", options={"expose"=true})
      */
 
     public function addWarrant(Request $request, SerializerInterface $serializer, EntityManagerInterface $em,  MandatRepository $mandatRepository,
