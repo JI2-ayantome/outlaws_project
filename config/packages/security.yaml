@@ -38,7 +38,7 @@ security:
         backend:
             pattern:        ^/admin
             security:       true 
-            anonymous:      true
+            anonymous:      false
             provider:       app_user_provider   
             http_basic:     ~
             form_login: 
@@ -47,7 +47,7 @@ security:
                 csrf_token_generator: security.csrf.token_manager
             logout:
                 path:       app_logout
-                target:     /app_login
+                target:     app_backend
             remember_me:
                 secret:     '%env(APP_SECRET)%'
                 # lifetime:  604800

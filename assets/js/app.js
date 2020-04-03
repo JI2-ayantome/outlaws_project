@@ -23,6 +23,8 @@ Routing.setRoutingData(routes);
 
 var localItems = [];
 var currentPage = 0;
+var excelRows = [];
+var currentExcelRowIndex = 0;
 
 fetchData("", "", 1);
 
@@ -92,7 +94,7 @@ function displayData(data, status){
 
     data.mandats.forEach(element => {
     
-        $("table tbody").append('<tr data-id = "'+element.id+'" class = "'+((element.archived) ? 'table-danger' : '')+'">\
+        $("table tbody").append('<tr data-id = "'+element.id+'" class = "">\
             <th scope="row">'+element.fugitif.nom+'</th>\
             <td>'+element.fugitif.prenoms+'</td>\
             <td>'+element.infractions+'</td>\
@@ -115,11 +117,15 @@ function displayData(data, status){
 }
 
 $("ul.pagination li:last").click(function(){
-    fetchData("", "", currentPage+1)
+    var value = $("#searchModal #searchInput").val();
+    var field = $("#searchModal #criteriaSelectTag").val();
+    fetchData(field, value, parseInt(currentPage)+1)
 });
 
 $("ul.pagination li:first").click(function(){
-    fetchData("", "", currentPage-1)
+    var value = $("#searchModal #searchInput").val();
+    var field = $("#searchModal #criteriaSelectTag").val();
+    fetchData(field, value, parseInt(currentPage)-1)
 });
 
 $("ul.pagination").on("click", "li.page-middle-item", function(){
@@ -219,7 +225,8 @@ function deleteItem(id){
 
 function onItemDeletionSuccess(response, status){
     if (status == "success"){
-        $("table tr[data-id='"+currentItemId+"']").addClass("table-danger");
+        console.log("");
+        $("table tr[data-id='"+currentItemId+"']").remove();
         toast("Item deleted successfully");
     }
 }
@@ -383,7 +390,7 @@ function getJsonObject(form){
                                 "observations":form.find("[name='observation']").val(),
                                 "listeNationalites":[{
                                     "nationalite":{
-                                        "libelle":"B\u00e9ninoise"
+                                        "libelle":form.find("[name='nationalite']").val()
                                     },
                                     "principale": true
                                 }],
@@ -439,15 +446,167 @@ $("#loginModal .form-control").on("keypress", function(){
 
 $("#btnImport").click(function(){
 
-    var modal = $(this).parents(".modal");
+    if(!$(this).hasClass("disabled")){
 
-    // disabling the file iput tag
-    modal.find("input").attr("readonly", true);
+        var modal = $(this).parents(".modal");
 
-    // starting the progressbar
-    modal.find(".progress").removeClass("d-none");
+        // disabling the file iput tag
+        modal.find("input").attr("readonly", true);
 
-    $(this).addClass("disabled");
+        $("#dataImportModal button.close").addClass("d-none");
 
-    modal.find("form").submit();
+        // starting the progressbar
+        modal.find(".progress").removeClass("d-none");
+
+        $(this).addClass("disabled");
+
+        readExcelFile();
+    }
+
+
+});
+
+function readExcelFile(){
+
+    var fileUpload = document.getElementById("excelFileInput");
+    if (typeof (FileReader) != "undefined") {
+        var reader = new FileReader();
+
+        //For Browsers other than IE.
+        if (reader.readAsBinaryString) {
+            reader.onload = function (e) {
+                processExcel(e.target.result);
+            };
+            reader.readAsBinaryString(fileUpload.files[0]);
+        } else {
+            //For IE Browser.
+            reader.onload = function (e) {
+                var data = "";
+                var bytes = new Uint8Array(e.target.result);
+                for (var i = 0; i < bytes.byteLength; i++) {
+                    data += String.fromCharCode(bytes[i]);
+                }
+                processExcel(data);
+            };
+            reader.readAsArrayBuffer(fileUpload.files[0]);
+        }
+    } else {
+        alert("This browser does not support HTML5.");
+    }
+
+}
+
+function processExcel(data) {
+    //Read the Excel File data.
+    var workbook = XLSX.read(data, {
+        type: 'binary'
+    });
+
+    //Fetch the name of First Sheet.
+    var firstSheet = workbook.SheetNames[0];
+
+    //Read all rows from First Sheet into an JSON array.
+    excelRows = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[firstSheet]);
+
+    //Add the data rows from Excel file.
+    // console.log(excelRows);
+    if (excelRows.length){
+        submitJsonObject(0);
+    }
+};
+
+function submitJsonObject(index){
+
+    currentExcelRowIndex = index;
+    var jsonObject = excelRows[index];
+
+    console.log("before", jsonObject);
+    var warrant = getWarrantFromRow(jsonObject);
+    console.log("after", warrant);
+
+    var data = warrant;
+    var route = Routing.generate("app_add_warrant_action");
+    performAjaxRequest(route, "POST", "json", data, onExcelDataAdditionSuccess, onDataAdditionFailure, onDataAdditionCompletion);
+
+}
+
+function onExcelDataAdditionSuccess(response, status){
+
+    console.log("OK : ", response);
+    if (status == "success"){
+        
+        // updates the progressbar
+        var percentage = (currentExcelRowIndex*100)/excelRows.length;
+        $(".progress-bar").attr("aria-valuenow", percentage);
+        $(".progress-bar").css("width",percentage+"%");
+
+        currentExcelRowIndex++;
+        if (currentExcelRowIndex < excelRows.length)
+            submitJsonObject(currentExcelRowIndex);
+    }
+
+}
+
+function getWarrantFromRow(jsonObject){
+    var result = 
+                    {
+                        "reference":jsonObject.no_ordre,
+                        "execute":((jsonObject.en_fuite == "1") ? false : true),
+                        "infractions":jsonObject.infraction,
+                        "chambres":jsonObject.cabinet_chambre,
+                        "juridictions":jsonObject.juridiction,
+                        "typeMandat":{
+                            "libelle":jsonObject.type_mandat
+                        },
+                        "fugitif":{
+                            "nom":jsonObject.nom,
+                            "prenoms":jsonObject.prenom,
+                            "nomMarital":jsonObject.nom_marital,
+                            "alias":jsonObject.alias,
+                            "surnom":jsonObject.surnom,
+                            "dateNaissance":((jsonObject.date_naissance == "") ? null : jsonObject.date_naissance),
+                            "lieuNaissance":jsonObject.lieu_naissance,
+                            "adresse":jsonObject.adresse,
+                            "taille":jsonObject.taille,
+                            "poids":jsonObject.poids,
+                            "couleurYeux":jsonObject.couleur_yeux,
+                            "couleurPeau":jsonObject.couleur_peau,
+                            "couleurCheveux":jsonObject.couleur_cheveux,
+                            "photoName":null,
+                            "photoSize":null,
+                            "sexe":jsonObject.sexe,
+                            "numeroTelephone":"",
+                            "observations":jsonObject.observations,
+                            "listeNationalites":[{
+                                "nationalite":{
+                                    "libelle":jsonObject.nationalite
+                                },
+                                "principale": true
+                            }],
+                            "langues":jsonObject.langue_parlee
+                        },
+                        "dateEmission":((jsonObject.date_emission == "") ? today : jsonObject.date_emission),
+                        "archived":false
+                    };
+    return result;
+}
+
+
+$("#excelFileInput").change(function(){
+    var fileName = $(this).val().split("\\").pop();
+    console.log(fileName);
+    $(this).next().html(fileName);
+
+    var extension = fileName.split(".")[1];
+    if (extension != "xlsx"){
+        $(this).parent().find(".invalid-feedback").text("Le fichier soumis ne répond pas aux critères");
+        $(this).addClass("is-invalid");
+        if(!$("#btnImport").hasClass("disabled")){
+            $("#btnImport").addClass("disabled");
+        }
+    }
+    else{
+        $(this).addClass("is-valid");
+        $("#btnImport").removeClass("disabled");
+    }
 });

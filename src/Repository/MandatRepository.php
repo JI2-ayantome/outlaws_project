@@ -205,7 +205,7 @@ class MandatRepository extends ServiceEntityRepository
         //dd($query);
         
         // return ["results"   =>  $query->getQuery()->getResult(), "count" = ];
-        // $query->andWhere("m.archived = false");
+        $query->andWhere("m.archived = false");
         return $query->getQuery()->getResult();
     }
     

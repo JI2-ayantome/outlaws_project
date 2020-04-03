@@ -33,15 +33,19 @@
                 href = "{{ path('app_login') }}">
                 Se connecter
             </a> #}
-            {# <a type="button" 
+            <a type="button" 
                 class="btn btn-primary btn-secondary" 
                 id="signup-button"
                 href = "#" data-toggle="modal" data-target="#dataImportModal">
                 Importer Données
-            </a> #}
+            </a>
             <a type="button" 
                 class="btn btn-link" style = "text-transform: lowercase;" href = "{{path('app_user_profile_action')}}">
                 {{ app.user.email }}
+            </a>
+            <a type="button" 
+                class="btn btn-link" href = "{{path('app_logout')}}">
+                Déconnexion
             </a>
         </div>
     </div>
