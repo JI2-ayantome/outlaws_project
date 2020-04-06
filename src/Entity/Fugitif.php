@@ -678,6 +678,16 @@ class Fugitif
         return $this;
     }
 
+    /**
+     * 
+     */
+    public function setListeNationalites(ArrayCollection $nationalites){
+        
+        $this->listeNationalites = $nationalites;
+
+        return $this;
+    }
+
     public function getLangues(): ?string
     {
         return $this->langues;

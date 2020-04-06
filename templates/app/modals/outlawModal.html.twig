@@ -80,22 +80,22 @@
                                     <div class="row mt-3">
                                         <div class="col">
                                             <label for="exampleInputEmail1">Taille</label>
-                                            <input type="number" class="form-control" value = "1.5" name = "taille">
+                                            <input type="number" class="form-control" value = "1.0" name = "taille">
                                         </div>
                                         <div class="col">
                                             <label for="exampleInputEmail1">Poids</label>
-                                            <input type="number" class="form-control" value = "50" name = "poids">
+                                            <input type="number" class="form-control" value = "50.0" name = "poids">
                                         </div>
                                     </div>
                     
                                     <div class="row mt-3">
                                         <div class="col">
                                             <label for="exampleInputEmail1">Numero Téléphone</label>
-                                            <input type="number" class="form-control" placeholder="Numero Téléphone" name = "numerotelephone">
+                                            <input type="text" class="form-control" placeholder="Numero Téléphone" name = "numerotelephone">
                                         </div>
                                         <div class="col">
-                                            <label for="exampleInputEmail1">Numero Pièce Identité</label>
-                                            <input type="number" class="form-control" placeholder="Numero Pièce Identité" name = "numeropieceid">
+                                            <label for="exampleInputEmail1">Nom marital</label>
+                                            <input type="text" class="form-control" placeholder="Nom marital" name = "nommarital">
                                         </div>
                                     </div>
     
@@ -104,9 +104,13 @@
                                             <label for="selectTagNationalite">Nationalité</label>
                                             <select class="form-control" id="selectTagNationalite" name = "nationalite">
                                                 {% for nationalite in nationalites %}
-                                                    <option value = "Béninoise">{{nationalite.libelle}}</option>
+                                                    <option value = "{{nationalite.libelle}}">{{nationalite.libelle}}</option>
                                                 {% endfor %}
                                             </select>
+                                        </div>
+                                        <div class="col">
+                                            <label for="inputLangues">Langues</label>
+                                            <input type="text" class="form-control" placeholder="Langues" name = "langues">
                                         </div>
                                     </div>
                     
@@ -154,7 +158,7 @@
                                             <label for="exampleInputEmail1">Type</label>
                                             <select class="form-control" id="selectTagTypeMandat" name = "typemandat">
                                                 {% for typeMandat in typeMandats %}
-                                                    <option value = "national">{{typeMandat.libelle}}</option>
+                                                    <option value = "{{typeMandat.libelle}}">{{typeMandat.libelle}}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>

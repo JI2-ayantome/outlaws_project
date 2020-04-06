@@ -248,11 +248,24 @@ $("#btnSave").click(function(e){
     
     var form = $("#dataModal form");
 
+    // if (!formValidated(form))
+    //     return;
+
     if (form.hasClass("update-data"))
         updateData(form);
     else if (form.hasClass("add-data"))
         addData(form);
 });
+
+function formValidated(form){
+    var telExpr = /((\d){2}-){3}(\d){2}/;
+    var numeroTelephone = form.find("[name='numerotelephone']").val();
+    console.log(numeroTelephone);
+    if (numeroTelephone != "" && telExpr.test(numeroTelephone)){
+        form.find("[name='numerotelephone']").addClass("is-invalid");
+        return false;
+    }
+}
 
 function updateData(form){
 
@@ -269,7 +282,7 @@ function onDataUpdateSuccess(response, status){
     console.log("OK : ", response);
     if (status == "success"){
         $(".modal.show").modal("hide");
-        toast("data updated successfully");
+        toast("Données modifiés avec succès");
     }
 }
 
@@ -293,12 +306,13 @@ function onDataAdditionSuccess(response, status){
     console.log("OK : ", response);
     if (status == "success"){
         $(".modal.show").modal("hide");
-        toast("data added successfully");
+        toast("Ajout effectué avec succès");
     }
 }
 
 function onDataAdditionFailure(response, status, error){
     console.log(response, status);
+    toast("Une erreur s'est produite!");
 }
 
 function onDataAdditionCompletion(response, status){
@@ -372,14 +386,14 @@ function getJsonObject(form){
                             "fugitif":{
                                 "nom":form.find("[name='nom']").val(),
                                 "prenoms":form.find("[name='prenoms']").val(),
-                                "nomMarital":"",
+                                "nomMarital":form.find("[name='nommarital']").val(),
                                 "alias":form.find("[name='surnom']").val(),
                                 "surnom":form.find("[name='surnom']").val(),
                                 "dateNaissance":((form.find("[name='datenaissance']").val() == "") ? null : form.find("[name='datenaissance']").val()),
                                 "lieuNaissance":form.find("[name='lieunaissance']").val(),
                                 "adresse":form.find("[name='adresse']").val(),
-                                "taille":null,
-                                "poids":null,
+                                "taille":((form.find("[name='taille']").val()) ? 0 : parseFloat(form.find("[name='taille']").val())),
+                                "poids":((form.find("[name='poids']").val() == "") ? 0 :  parseFloat(form.find("[name='poids']").val())),
                                 "couleurYeux":null,
                                 "couleurPeau":null,
                                 "couleurCheveux":null,
@@ -394,7 +408,7 @@ function getJsonObject(form){
                                     },
                                     "principale": true
                                 }],
-                                "langues":null
+                                "langues":form.find("[name='langues']").val()
                             },
                             "dateEmission":((form.find("[name='dateemission']").val() == "") ? today : form.find("[name='dateemission']").val()),
                             "archived":false
@@ -524,7 +538,7 @@ function submitJsonObject(index){
     var warrant = getWarrantFromRow(jsonObject);
     console.log("after", warrant);
 
-    var data = warrant;
+    var data = JSON.stringify(warrant);
     var route = Routing.generate("app_add_warrant_action");
     performAjaxRequest(route, "POST", "json", data, onExcelDataAdditionSuccess, onDataAdditionFailure, onDataAdditionCompletion);
 
@@ -548,44 +562,52 @@ function onExcelDataAdditionSuccess(response, status){
 }
 
 function getWarrantFromRow(jsonObject){
+
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+
+    today = yyyy+"-"+mm+"-"+dd;
+
     var result = 
                     {
-                        "reference":jsonObject.no_ordre,
+                        "reference":((jsonObject.no_ordre == undefined) ? "" : jsonObject.no_ordre),
                         "execute":((jsonObject.en_fuite == "1") ? false : true),
-                        "infractions":jsonObject.infraction,
-                        "chambres":jsonObject.cabinet_chambre,
-                        "juridictions":jsonObject.juridiction,
+                        "infractions":((jsonObject.infraction == undefined) ? "" : jsonObject.infraction),
+                        "chambres":((jsonObject.cabinet_chambre == undefined) ? "" : jsonObject.cabinet_chambre),
+                        "juridictions":((jsonObject.juridiction == undefined) ? "" : jsonObject.juridiction),
                         "typeMandat":{
-                            "libelle":jsonObject.type_mandat
+                            "libelle":(((jsonObject.type_mandat == undefined) || (jsonObject.type_mandat == "")) ? "ND" : jsonObject.type_mandat)
                         },
                         "fugitif":{
-                            "nom":jsonObject.nom,
-                            "prenoms":jsonObject.prenom,
-                            "nomMarital":jsonObject.nom_marital,
-                            "alias":jsonObject.alias,
-                            "surnom":jsonObject.surnom,
-                            "dateNaissance":((jsonObject.date_naissance == "") ? null : jsonObject.date_naissance),
-                            "lieuNaissance":jsonObject.lieu_naissance,
-                            "adresse":jsonObject.adresse,
-                            "taille":jsonObject.taille,
-                            "poids":jsonObject.poids,
-                            "couleurYeux":jsonObject.couleur_yeux,
-                            "couleurPeau":jsonObject.couleur_peau,
-                            "couleurCheveux":jsonObject.couleur_cheveux,
+                            "nom":((jsonObject.nom == undefined) ? "" : jsonObject.nom),
+                            "prenoms":((jsonObject.prenom == undefined) ? "" : jsonObject.prenom),
+                            "nomMarital":((jsonObject.nom_marital == undefined) ? "" : jsonObject.nom_marital),
+                            "alias":((jsonObject.alias == undefined) ? "" : jsonObject.alias),
+                            "surnom":((jsonObject.surnom == undefined) ? "" : jsonObject.surnom),
+                            "dateNaissance":(((jsonObject.date_naissance == undefined) || (jsonObject.date_naissance == "") ) ? null : jsonObject.date_naissance),
+                            "lieuNaissance":((jsonObject.lieu_naissance == undefined) ? "" : jsonObject.lieu_naissance),
+                            "adresse":((jsonObject.adresse == undefined) ? "" : jsonObject.adresse),
+                            "taille":((jsonObject.taille == undefined) ? 0 : jsonObject.taille),
+                            "poids":((jsonObject.poids == undefined) ? 0 : jsonObject.poids),
+                            "couleurYeux":((jsonObject.couleur_yeux == undefined) ? ""  : jsonObject.couleur_yeux),
+                            "couleurPeau":((jsonObject.couleur_peau == undefined) ? "" : jsonObject.couleur_peau),
+                            "couleurCheveux":((jsonObject.couleur_cheveux == undefined) ? "" : jsonObject.couleur_cheveux),
                             "photoName":null,
                             "photoSize":null,
-                            "sexe":jsonObject.sexe,
+                            "sexe":((jsonObject.sexe == undefined) ? "" : jsonObject.sexe),
                             "numeroTelephone":"",
-                            "observations":jsonObject.observations,
+                            "observations":((jsonObject.observations == undefined) ? "" : jsonObject.observations),
                             "listeNationalites":[{
                                 "nationalite":{
-                                    "libelle":jsonObject.nationalite
+                                    "libelle":((jsonObject.nationalite == undefined) ? "" : jsonObject.nationalite)
                                 },
                                 "principale": true
                             }],
-                            "langues":jsonObject.langue_parlee
+                            "langues":((jsonObject.langue_parlee == undefined) ? "" : jsonObject.langue_parlee)
                         },
-                        "dateEmission":((jsonObject.date_emission == "") ? today : jsonObject.date_emission),
+                        "dateEmission":(((jsonObject.date_emission == undefined)||(jsonObject.date_emission == "")) ? today : jsonObject.date_emission),
                         "archived":false
                     };
     return result;
@@ -606,6 +628,7 @@ $("#excelFileInput").change(function(){
         }
     }
     else{
+        $(this).removeClass("is-invalid");
         $(this).addClass("is-valid");
         $("#btnImport").removeClass("disabled");
     }

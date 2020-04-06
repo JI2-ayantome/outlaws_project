@@ -158,7 +158,7 @@ class CrudController extends AbstractController
         }
         
         foreach ($fugitif->getMandats() as $mandat) {
-            $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
+            $typemandat = $typeMandatRepository->findOneBy(["libelle" => strtolower($mandat->getTypeMandat()->getLibelle())]);
             if ($typemandat){
                 $mandat->setTypeMandat($typemandat);
             }

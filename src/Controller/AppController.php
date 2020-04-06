@@ -12,6 +12,7 @@ use App\Repository\FugitifRepository;
 use App\Repository\MandatRepository;
 use App\Repository\NationaliteRepository;
 use App\Repository\TypeMandatRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -115,37 +116,6 @@ class AppController extends AbstractController
     }
 
     /**
-     * @Route("/admin/data-excel-file", name="app_data_import_action")
-     */
-    public function dataImport(Request $request/* , SluggerInterface $slugger */)
-    {
-
-        /** @var UploadedFile $brochureFile */
-        $excelFile = $request->get('excel_file')->getData();
-
-        // this condition is needed because the 'brochure' field is not required
-        // so the PDF file must be processed only when a file is uploaded
-
-        if ($excelFile) {
-            $originalFilename = pathinfo($excelFile->getClientOriginalName(), PATHINFO_FILENAME);
-            // this is needed to safely include the file name as part of the URL
-            // $safeFilename = $slugger->slug($originalFilename);
-            $newFilename = $safeFilename.'-'.uniqid().'.'.$excelFile->guessExtension();
-
-            // Move the file to the directory where brochures are stored
-            try {
-                $excelFile->move(
-                    $this->getParameter('EXCEL_FILES_DIR'),
-                    $newFilename
-                );
-            } catch (FileException $e) {
-                // ... handle exception if something happens during file upload
-            }
-        }
-        return $this->render('about.html.twig');
-    }
-
-    /**
      * @Route("/admin/search", name="app_search_action", methods="GET", options={"expose"=true})
      */
 
@@ -204,10 +174,16 @@ class AppController extends AbstractController
     NationaliteRepository $nationaliteRepository, TypeMandatRepository $typeMandatRepository, $id, FugitifRepository $fugitifRepository) : Response
     {
         $mandat = $mandatRepository->findOneBy(["id"    =>  $id]);
+        if ($mandat == null){
+            return $this->json("Objet non trouvé", Response::HTTP_BAD_REQUEST);
+        }
+
         $fugitif = $mandat->getFugitif();
+
         try {
             /** @var Mandat */
             $serializer->deserialize($request->getContent(), Mandat::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $mandat] /* [ "groups" => "search:read" ] */);
+            // $mandat = $serializer->deserialize($request->getContent(), Mandat::class, 'json', [ "groups" => "infos_mandat" ]);
 
         } catch (NotEncodableValueException $e) {
             return $this->json($e->getMessage(), Response::HTTP_BAD_REQUEST);
@@ -215,41 +191,53 @@ class AppController extends AbstractController
             return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
         }
 
+        $listeNationalites = new ArrayCollection();
+
+        foreach ($mandat->getFugitif()->getListeNationalites() as $nat) {
+            $nationalite = $nationaliteRepository->findOneBy(["libelle" => ($nat->getNationalite()->getLibelle()) ]);
+            if($nationalite){
+                // $mandat->getFugitif()->removeListeNationalite($nat);
+                $natfug = (new NationaliteFugitif())
+                            ->setNationalite($nationalite)
+                            ->setFugitif($mandat->getFugitif());
+                // $mandat->getFugitif()->addListeNationalite($natfug);
+                $listeNationalites->add($natfug);
+            }
+            else{
+                $listeNationalites->add($nat);
+            }
+        }
+        $mandat->getFugitif()->setListeNationalites($listeNationalites);
+
         $fugitif = $fugitifRepository->findOneBy(["nom" =>  $fugitif->getNom(),
                                                   "prenoms" =>  $fugitif->getPrenoms(),
                                                   /* "dateNaissance"   =>  $mandat->getFugitif()->getDateNaissance(),
                                                   "lieuNaissance"   =>  $mandat->getFugitif()->getLieuNaissance() */]);
 
         if ($fugitif){
-            
-            foreach ($mandat->getFugitif()->getListeNationalites() as $nat) {
-                $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
-                if($nationalite){
-                    $mandat->getFugitif()->removeListeNationalite($nat);
-                    $natfug = (new NationaliteFugitif())
-                        ->setNationalite($nationalite);
-                    $mandat->getFugitif()->addListeNationalite($natfug);
-                }
-                // $nat->setFugitif($fugitif);
-            }
-
-            // dd($mandat->getFugitif()->getListeNationalites());
-    
-            $fugitif->copy($mandat->getFugitif());
-            $mandat->setFugitif($fugitif);
 
             foreach ($mandat->getFugitif()->getListeNationalites() as $nat) {
                 $nat->setFugitif($fugitif);
             }
-
+    
+            $fugitif->copy($mandat->getFugitif());
+            $mandat->setFugitif($fugitif);
         }
         
         $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
         if ($typemandat){
             $mandat->setTypeMandat($typemandat);
         }
-        // dd($mandat);
-        $em->flush();
+
+        // // dd($mandat);
+        // // $warrant->copy($mandat);
+
+        try {
+            $em->persist($mandat);
+            $em->flush();
+        } catch (\Exception $ex) {
+            return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
         return $this->json($mandat, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
     }
 
@@ -273,25 +261,28 @@ class AppController extends AbstractController
 
         $fugitif = $mandat->getFugitif();
         foreach ($fugitif->getListeNationalites() as $nat) {
-            $nationalite = $nationaliteRepository->findOneBy(["libelle" => $nat->getNationalite()->getLibelle() ]);
+            $nationalite = $nationaliteRepository->findOneBy(["libelle" => ($nat->getNationalite()->getLibelle())]);
             if($nationalite){
                 $fugitif->removeListeNationalite($nat);
                 $natfug = (new NationaliteFugitif())
-                    ->setFugitif($fugitif)
-                    ->setNationalite($nationalite);
+                            ->setFugitif($fugitif)
+                            ->setNationalite($nationalite);
                 $fugitif->addListeNationalite($natfug);
             }
         }
         $mandat->setFugitif($fugitif);
         
-        $typemandat = $typeMandatRepository->findOneBy(["libelle" => $mandat->getTypeMandat()->getLibelle() ]);
+        $typemandat = $typeMandatRepository->findOneBy(["libelle" => ($mandat->getTypeMandat()->getLibelle())]);
         if ($typemandat){
             $mandat->setTypeMandat($typemandat);
         }
 
-        $em->persist($mandat);
-        $em->flush();
+        try {
+            $em->persist($mandat);
+            $em->flush();
+        } catch (\Exception $ex) {
+            return $this->json($ex->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
         return $this->json($mandat, Response::HTTP_OK, [], [ "groups" => "infos_mandat" ]);
     }
-    
 }

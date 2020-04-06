@@ -201,4 +201,19 @@ class Mandat
 
         return $this;
     }
+
+    /**
+     * 
+     */
+    public function copy($mandat){
+        $this->reference = $mandat->getReference();
+        $this->execute = $mandat->getExecute();
+        $this->fugitif = $mandat->getFugitif();
+        $this->archived = $mandat->isArchived();
+        $this->infractions = $mandat->getInfractions();
+        $this->chambres = $mandat->getChambres();
+        $this->juridictions = $mandat->getJuridictions();
+        $this->typeMandat = $mandat->getTypeMandat();
+        $this->dateEmission = $mandat->getDateEmission();
+    }
 }
